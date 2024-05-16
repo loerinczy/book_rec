@@ -118,8 +118,22 @@ if "book" not in st.session_state:
 if "top_k" not in st.session_state:
     st.session_state.top_k = 5
 
+st.session_state.author = st.text_input(
+    label="Who is the author of the book?", value=st.session_state.author
+)
+st.session_state.book = st.text_input(
+    label="What is your favorite book?", value=st.session_state.book
+)
 
-if st.session_state.author and st.session_state.book and st.session_state.top_k:
+st.session_state.top_k = st.slider(
+    label="How many books should I recommend?",
+    min_value=0,
+    max_value=10,
+    value=0,
+)
+
+run = st.button("Submit")
+if run:
     rec_list = recommend(
         st.session_state.author, st.session_state.book, st.session_state.top_k
     )
@@ -131,19 +145,3 @@ if st.session_state.author and st.session_state.book and st.session_state.top_k:
 
     st.write(f"Here are the first {st.session_state.top_k} recommended books:")
     st.markdown(s)
-
-
-st.session_state.author = st.text_input(
-    label="Who is the author of the book?", value=st.session_state.author
-)
-st.session_state.book = st.text_input(
-    label="What is your favorite book?", value=st.session_state.book
-)
-
-
-st.session_state.top_k = st.slider(
-    label="How many books should I recommend?",
-    min_value=0,
-    max_value=10,
-    value=0,
-)
