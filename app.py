@@ -6,6 +6,54 @@ Here's our first attempt at using data to create a table:
 import streamlit as st
 import pandas as pd
 import numpy as np
+import crate.client as client
+import os
+import json
+import boto3
+
+
+def get_cratedb_password():
+
+    secret_name = "dome_cratedb_password"
+    region_name = "eu-west-3"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+        secret = get_secret_value_response["SecretString"]
+        secret = json.loads(secret)["cratedb_password"]
+    except:
+        secret = os.getenv("CRATEDB_PASSWORD")
+
+    return secret
+
+
+def get_matching_entry(author: str, book: str):
+    select_stmt = f"""
+        select * 
+        from dome.books_search 
+        where 
+            match(title, '{book}') 
+            and match(author, '{author}') 
+        limit 1"""
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(select_stmt)
+        entry = cursor.fetchall()
+    return entry[0]
+
+
+def get_connection() -> client.connection.Connection:
+    connection = client.connect(
+        "https://beige-nute-gunray.aks1.eastus2.azure.cratedb.net:4200",
+        username="admin",
+        password=get_cratedb_password(),
+    )
+    return connection
 
 
 def recommend(selected_author: str, selected_book: str, top_k: int):
@@ -14,13 +62,11 @@ def recommend(selected_author: str, selected_book: str, top_k: int):
     selected_book = selected_book.lower()
 
     # load ratings
-    ratings = pd.read_csv("/data/Ratings.csv", encoding="cp1251", sep=";")
+    ratings = pd.read_csv("./Ratings.csv", encoding="cp1251", sep=";")
     ratings = ratings[ratings["Book-Rating"] != 0]
 
     # load books
-    books = pd.read_csv(
-        "/data/Books.csv", encoding="cp1251", sep=";", on_bad_lines="skip"
-    )
+    books = pd.read_csv("./Books.csv", encoding="cp1251", sep=";", on_bad_lines="skip")
 
     # users_ratigs = pd.merge(ratings, users, on=['User-ID'])
     dataset = pd.merge(ratings, books, on=["ISBN"])
@@ -134,9 +180,11 @@ st.session_state.top_k = st.slider(
 
 run = st.button("Submit")
 if run:
-    rec_list = recommend(
-        st.session_state.author, st.session_state.book, st.session_state.top_k
-    )
+    entry = get_matching_entry(st.session_state.author, st.session_state.book)
+    author = entry[2]
+    book = entry[1]
+    st.write(f"Found book: {author}: {book}")
+    rec_list = recommend(author, book, st.session_state.top_k)
 
     s = ""
 
