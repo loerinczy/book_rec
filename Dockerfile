@@ -1,6 +1,6 @@
 FROM python
 
-RUN pip install streamlit pandas altair
+RUN pip install streamlit pandas altair crate boto3
 
 RUN apt-get update && apt-get install -y \
     build-essential \
