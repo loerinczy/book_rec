@@ -62,11 +62,13 @@ def recommend(selected_author: str, selected_book: str, top_k: int):
     selected_book = selected_book.lower()
 
     # load ratings
-    ratings = pd.read_csv("./Ratings.csv", encoding="cp1251", sep=";")
+    ratings = pd.read_csv("/data/Ratings.csv", encoding="cp1251", sep=";")
     ratings = ratings[ratings["Book-Rating"] != 0]
 
     # load books
-    books = pd.read_csv("./Books.csv", encoding="cp1251", sep=";", on_bad_lines="skip")
+    books = pd.read_csv(
+        "/data/Books.csv", encoding="cp1251", sep=";", on_bad_lines="skip"
+    )
 
     # users_ratigs = pd.merge(ratings, users, on=['User-ID'])
     dataset = pd.merge(ratings, books, on=["ISBN"])
