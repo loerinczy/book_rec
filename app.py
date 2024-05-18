@@ -44,7 +44,7 @@ def get_matching_entry(author: str, book: str):
         cursor = conn.cursor()
         cursor.execute(select_stmt)
         entry = cursor.fetchall()
-    return entry[0]
+    return entry
 
 
 def get_connection() -> client.connection.Connection:
@@ -62,12 +62,12 @@ def recommend(selected_author: str, selected_book: str, top_k: int):
     selected_book = selected_book.lower()
 
     # load ratings
-    ratings = pd.read_csv("/data/Ratings.csv", encoding="cp1251", sep=";")
+    ratings = pd.read_csv("data/Ratings.csv", encoding="cp1251", sep=";")
     ratings = ratings[ratings["Book-Rating"] != 0]
 
     # load books
     books = pd.read_csv(
-        "/data/Books.csv", encoding="cp1251", sep=";", on_bad_lines="skip"
+        "data/Books.csv", encoding="cp1251", sep=";", on_bad_lines="skip"
     )
 
     # users_ratigs = pd.merge(ratings, users, on=['User-ID'])
@@ -100,6 +100,9 @@ def recommend(selected_author: str, selected_book: str, top_k: int):
         number_of_rating_per_book["User-ID"] >= 8
     ]
     books_to_compare = books_to_compare.tolist()
+
+    if selected_book not in books_to_compare:
+        return None
 
     ratings_data_raw = books_of_selected_author_readers[
         ["User-ID", "Book-Rating", "Book-Title"]
@@ -183,15 +186,27 @@ st.session_state.top_k = st.slider(
 run = st.button("Submit")
 if run:
     entry = get_matching_entry(st.session_state.author, st.session_state.book)
-    author = entry[2]
-    book = entry[1]
-    st.write(f"Found book: {author}: {book}")
-    rec_list = recommend(author, book, st.session_state.top_k)
+    if entry:
+        author = entry[0][2]
+        book = entry[0][1]
+        st.write(f"Found book: {author}: {book}")
+        rec_list = recommend(author, book, st.session_state.top_k)
 
-    s = ""
+        if rec_list is None:
+            st.write(
+                "Sorry, as there are less than 8 ratings for the selected book,"
+                " we cannot recommend based on it."
+            )
+        else:
+            s = ""
 
-    for i in rec_list:
-        s += "- " + i + "\n"
+            for i in rec_list:
+                s += "- " + i + "\n"
 
-    st.write(f"Here are the first {st.session_state.top_k} recommended books:")
-    st.markdown(s)
+            st.write(f"Here are the first {st.session_state.top_k} recommended books:")
+            st.markdown(s)
+    else:
+        st.write(
+            "It looks like there is not matching book,"
+            " please try with different input!"
+        )
