@@ -1,5 +1,6 @@
 Recommendation
     How it works
+        * collaborative filtering (not content-based, as not user or item feature is provided - maybe the title)
         * take the selected author and book
         * select the users who rated this book
         * take the books that these selected users rated
@@ -11,6 +12,7 @@ Recommendation
         * on_bad_lines instead of error_bad_lines
         * tab computation erroneous
         * parametrization (remove hardcoded tolkien and lord of the rings)
+        * number of ratings smaller than 8
     Furhter improvements
         * data preprocessing
             * normalization (facilitate matches with typos)
@@ -19,17 +21,22 @@ Recommendation
             * mix the relevancy of author and book title match
             * use for the above possibly fulltext search
         * error handling (missing author, book, etc..)
+        * try different similarity metric
+        * embed titles and add as a feature to compare similarity
+        * refactor the procedural code into OO to facilitate different models (abstract base class as an interface)
 
 Deployment
     * build image out of the application
     * deploy the image in a resilient manner
         * ECS
+            * application load balancer
+            * auto scaling
         * Kubernetes
         * EC2 instances with auto scaling group & load balancer
     * possible deploy the model as a standalone backend
         * on databricks via model serving
         * on databricks via long-running job cluster (compute backend through REST API)
-
+    * web application firewall to protect against sql injection
 
 
 Other difficulties
