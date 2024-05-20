@@ -19,7 +19,7 @@ Recommendation
             * remove punctuation
             * remove shady users (a lot of 0 and 10 ratings, giving too little or too many ratings)
             * mix the relevancy of author and book title match
-            * use for the above possibly fulltext search
+            * use for the above fulltext search
         * error handling (missing author, book, etc..)
         * try different similarity metric
         * embed titles and add as a feature to compare similarity
